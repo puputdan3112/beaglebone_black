@@ -1,0 +1,47 @@
+import smbus
+import time
+from adafruit_bme280 import basic as adafruit_bme280
+from adafruit_ccs811 import CCS811
+
+# Create I2C bus
+i2c = smbus.SMBus(1)  # Use the appropriate I2C bus number
+bme280_address = 0x76  # Change if your BME280 has a different address
+ccs811_address = 0x5A  # CCS811 default address
+
+# Initialize BME280
+bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c, address=bme280_address)
+
+# Initialize CCS811
+ccs811 = CCS811(i2c, address=ccs811_address)
+
+# Wait for the CCS811 to be ready
+while not ccs811.data_ready:
+    time.sleep(0.1)
+
+print("Starting data collection...")
+
+try:
+    while True:
+        # Read BME280 data
+        temperature = bme280.temperature
+        humidity = bme280.humidity
+        pressure = bme280.pressure
+        
+        # Read CCS811 data
+        if ccs811.data_ready:
+            eco2 = ccs811.eco2
+            tvoc = ccs811.tvoc
+        
+            print(f"CO2: {eco2} ppm, TVOC: {tvoc} ppb")
+        else:
+            print("CCS811 data not ready yet.")
+        
+        print(f"Temperature: {temperature:.2f} °C")
+        print(f"Humidity: {humidity:.2f} %")
+        print(f"Pressure: {pressure:.2f} hPa")
+        
+        time.sleep(2)
+
+except KeyboardInterrupt:
+    print("Exiting...")
+
